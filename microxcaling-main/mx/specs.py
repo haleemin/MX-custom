@@ -242,7 +242,7 @@ def add_mx_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 
     # All arguments are added as default None except bools.
     # A newly parsed mx_specs object must have finalize_mx_specs
-    # called on it before it can be used!
+    # called on it before it can be used
     #
     # Examples:
     #  scale_bits: 0             -->  --scale_bits default None
