@@ -32,6 +32,13 @@ from .simd_ops import simd_add, simd_sub, simd_mul, simd_div, simd_split
 from .simd_ops import simd_sqrt, simd_square, simd_exp, simd_log
 from .simd_ops import simd_reduce_sum, simd_reduce_mean, simd_norm
 
+from .modules import Conv2d
+import torch.nn as _nn
+
+# torch.nn.Conv2d → MX 양자화 Conv2d 로 교체
+_nn.Conv2d = Conv2d
+
+
 from .simd_ops import simd_add, simd_sub, simd_mul, simd_split
 from .simd_ops import simd_sqrt, simd_square, simd_norm
 
