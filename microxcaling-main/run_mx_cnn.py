@@ -11,7 +11,7 @@ from mx import add_mx_args, get_mx_specs
 # 사용자 정의 CNN 모델
 from cnn_model import CNN
 # 양자화 호출 (modules.py가 torch.nn.Conv2d를 오버라이드하므로 직접 호출은 선택적)
-from mx.ops import quantize_tensor
+from mx.mx_ops import quantize_mx_op as quantize_tensor
 
 # MXConv2d 래퍼 (modules.py를 사용한다면 이 부분은 생략 가능)
 class MXConv2d(nn.Conv2d):
