@@ -74,7 +74,7 @@ def main():
     # 3.3) 모델 로드
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = CNN().to(device)
-    model.load_state_dict(torch.load(args.checkpoint, map_location=device))
+    #model.load_state_dict(torch.load(args.checkpoint, map_location=device))
 
     # 3.4) Conv2d → MXConv2d 교체
     replace_convs_with_mx(model, mx_specs)
