@@ -1,6 +1,6 @@
 # microxcaling-main/mx/modules.py
 import torch.nn as nn
-from .ops import quantize_tensor
+from .mx_ops import quantize_mx_op as quantize_tensor  # ← 변경된 부분
 
 class Conv2d(nn.Conv2d):
     def __init__(self, *args, mx_specs=None, **kwargs):
