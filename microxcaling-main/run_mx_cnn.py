@@ -11,9 +11,7 @@ from mx import add_mx_args, get_mx_specs
 # ② 여러분의 CNN 모델
 from cnn_model import CNN
 
-# ③ MX 양자화에 사용할 함수
-from mx.ops import quantize_tensor
-
+from mx.mx_ops import quantize_mx_op as quantize_tensor
 
 # ── 1) MXConv2d 래퍼 ─────────────────────────────────────────
 class MXConv2d(nn.Conv2d):
