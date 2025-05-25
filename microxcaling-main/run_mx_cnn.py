@@ -1,3 +1,4 @@
+# File: microxcaling-main/run_mx_cnn.py
 import argparse
 import torch
 import torch.nn as nn
@@ -5,42 +6,28 @@ from torch.utils.data import DataLoader
 import torchvision.transforms as T
 import torchvision.datasets as D
 
-# ① MX 옵션 파싱
+# MX 옵션 파싱
 from mx import add_mx_args, get_mx_specs
-
-# ② 여러분의 CNN 모델
+# 사용자 정의 CNN 모델
 from cnn_model import CNN
+# 양자화 호출 (modules.py가 torch.nn.Conv2d를 오버라이드하므로 직접 호출은 선택적)
+from mx.ops import quantize_tensor
 
-from mx.mx_ops import quantize_mx_op as quantize_tensor
-
-# ── 1) MXConv2d 래퍼 ─────────────────────────────────────────
+# MXConv2d 래퍼 (modules.py를 사용한다면 이 부분은 생략 가능)
 class MXConv2d(nn.Conv2d):
-    """
-    nn.Conv2d 를 상속하여
-    forward() 전후에 quantize_tensor 를 적용합니다.
-    """
     def __init__(self, *args, mx_specs=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.mx_specs = mx_specs
 
     def forward(self, x):
-        # 입력 활성화 양자화
         x = quantize_tensor(x, self.mx_specs, mode="input")
-        # 원래 Conv2d 연산
         out = super().forward(x)
-        # 출력 활성화 양자화
         return quantize_tensor(out, self.mx_specs, mode="output")
 
-
-# ── 2) 모델 내부의 모든 nn.Conv2d → MXConv2d 교체 ─────────────
+# 모델 내부 Conv2d→MXConv2d 교체 (modules.py로 전역 교체 시 생략 가능)
 def replace_convs_with_mx(module, mx_specs):
-    """
-    module 내의 모든 nn.Conv2d 인스턴스를
-    MXConv2d(wrapper) 인스턴스로 교체합니다.
-    """
     for name, child in list(module.named_children()):
-        if isinstance(child, nn.Conv2d):
-            # 기존 Conv2d 파라미터 복사
+        if isinstance(child, nn.Conv2d) and not isinstance(child, MXConv2d):
             new_conv = MXConv2d(
                 child.in_channels, child.out_channels,
                 mx_specs=mx_specs,
@@ -57,28 +44,49 @@ def replace_convs_with_mx(module, mx_specs):
             replace_convs_with_mx(child, mx_specs)
 
 
-# ── 3) main() 함수 ───────────────────────────────────────────
 def main():
-    # 3.1) 인자 파싱
     parser = argparse.ArgumentParser(description="MX-Quantized CNN Inference")
-    parser = add_mx_args(parser)                               # --w_elem_format 등 MX 옵션 추가
+    parser = add_mx_args(parser)
+
+    # CNN 생성자 인자
+    parser.add_argument("--model_code",  type=str,   default="VGG11",
+                        help="VGG11/VGG13/VGG16/VGG19 중 선택")
+    parser.add_argument("--in_channels", type=int,   default=3,
+                        help="입력 채널 수")
+    parser.add_argument("--out_dim",     type=int,   default=10,
+                        help="출력 클래스 수")
+    parser.add_argument("--act",         type=str,   default="relu",
+                        choices=["relu","sigmoid","tanh"],
+                        help="활성화 함수 코드")
+    parser.add_argument("--use_bn",      action="store_true", default=True,
+                        help="BatchNorm 사용 여부")
+
+    # 기타 인자
     parser.add_argument("--batch_size", type=int, default=128)
-    parser.add_argument("--checkpoint", type=str, default="cnn.pth")
+    parser.add_argument("--checkpoint", type=str, default=None,
+                        help="가중치 파일 경로 (없으면 랜덤 초기화)")
     args = parser.parse_args()
 
-    # 3.2) MX 스펙 생성
+    # MX 스펙 생성
     mx_specs = get_mx_specs(args)
+    device   = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # 3.3) 모델 로드
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = CNN().to(device)
-    #model.load_state_dict(torch.load(args.checkpoint, map_location=device))
+    # 모델 초기화
+    model = CNN(
+        model_code  = args.model_code,
+        in_channels = args.in_channels,
+        out_dim     = args.out_dim,
+        act         = args.act,
+        use_bn      = args.use_bn
+    ).to(device)
+    if args.checkpoint:
+        model.load_state_dict(torch.load(args.checkpoint, map_location=device))
 
-    # 3.4) Conv2d → MXConv2d 교체
+    # Conv2d→MXConv2d 교체
     replace_convs_with_mx(model, mx_specs)
     model.eval()
 
-    # 3.5) 데이터셋 준비
+    # 데이터 로드
     transform = T.Compose([
         T.ToTensor(),
         T.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
@@ -86,9 +94,8 @@ def main():
     testset = D.CIFAR10(root="./data", train=False, download=True, transform=transform)
     loader  = DataLoader(testset, batch_size=args.batch_size, shuffle=False)
 
-    # 3.6) 추론 루프
-    correct = 0
-    total   = 0
+    # 추론 및 정확도 계산
+    correct = total = 0
     with torch.no_grad():
         for images, labels in loader:
             images, labels = images.to(device), labels.to(device)
@@ -99,7 +106,6 @@ def main():
 
     print(f"MX-quantized accuracy: {100 * correct / total:.2f}%")
 
-
-# ── 4) 스크립트 실행부 ────────────────────────────────────────
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
+
