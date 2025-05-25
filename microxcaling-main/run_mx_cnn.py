@@ -11,8 +11,7 @@ from mx import add_mx_args, get_mx_specs
 # 사용자 정의 CNN 모델
 from cnn_model import CNN
 # 양자화 호출 (modules.py가 torch.nn.Conv2d를 오버라이드하므로 직접 호출은 선택적)
-from mx.mx_ops import quantize_mx_op as quantize_tensor
-
+from mx.mx_ops import quantize_mx_op 
 # MXConv2d 래퍼 (modules.py를 사용한다면 이 부분은 생략 가능)
 class MXConv2d(nn.Conv2d):
     def __init__(self, *args, mx_specs=None, **kwargs):
@@ -20,9 +19,9 @@ class MXConv2d(nn.Conv2d):
         self.mx_specs = mx_specs
 
     def forward(self, x):
-        x = quantize_tensor(x, self.mx_specs, mode="input")
+        x = quantize_mx_op(x, self.mx_specs)
         out = super().forward(x)
-        return quantize_tensor(out, self.mx_specs, mode="output")
+        return quantize_mx_op(out, self.mx_specs)
 
 # 모델 내부 Conv2d→MXConv2d 교체 (modules.py로 전역 교체 시 생략 가능)
 def replace_convs_with_mx(module, mx_specs):
