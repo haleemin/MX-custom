@@ -1,7 +1,7 @@
 # Most recent tested torch version, older versions
 # will probably work.
 torch==2.2.0
-torchvision==0.16
+torchvision==0.17
 torchaudio==2.1.0
 
 pytest
