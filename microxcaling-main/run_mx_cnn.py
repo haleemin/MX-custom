@@ -83,6 +83,7 @@ def main():
 
     # Conv2d→MXConv2d 교체
     replace_convs_with_mx(model, mx_specs)
+    model = model.to(device)
     model.eval()
 
     # 데이터 로드
