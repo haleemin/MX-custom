@@ -5,6 +5,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import torchvision.transforms as T
 import torchvision.datasets as D
+import torch.nn.functional as F
 
 # MX 옵션 파싱
 from mx import add_mx_args, get_mx_specs
