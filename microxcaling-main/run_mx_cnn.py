@@ -39,7 +39,7 @@ class MXConv2d(nn.Conv2d):
         b_q =  quantize_mx_op(
                 self.bias,
                 self.mx_specs,
-                elem_format=self.mx_specs["b_elem_format"]
+                elem_format=self.mx_specs["w_elem_format"]
             ) if self.bias is not None else None
         
         out = F.conv2d(
