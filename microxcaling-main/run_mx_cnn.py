@@ -29,7 +29,7 @@ class MXConv2d(nn.Conv2d):
         # 3) bias 양자화 (bias가 있는 경우만)
         b_q = quantize_mx_op(self.bias, self.mx_specs) if self.bias is not None else None
         
-         out = F.conv2d(
+        out = F.conv2d(
             x_q,
             w_q,
             b_q,
