@@ -26,7 +26,7 @@ class MXConv2d(nn.Conv2d):
             x,
             self.mx_specs,
             elem_format=self.mx_specs["a_elem_format"],
-            axes=[1])
+            axes=[1]
         )
         print(x_q)
         # 2) weight 양자화
