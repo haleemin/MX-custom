@@ -53,7 +53,7 @@ def replace_convs_with_mx(module, mx_specs):
              # (2) 교체 전 Conv2d 정보 출력
        #     print(f"  → Before replace ({name}) weight.shape={tuple(child.weight.shape)}")
         #    print(f"    weight data:\n{child.weight.data}")
-            if child.bias is not None:
+         #   if child.bias is not None:
          #       print(f"    bias data:\n{child.bias.data}")
                 
             new_conv = MXConv2d(
