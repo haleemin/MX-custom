@@ -21,8 +21,9 @@ class MXConv2d(nn.Conv2d):
 
     def forward(self, x):
          # 1) 입력 activation 양자화
+        print(x)
         x_q = quantize_mx_op(x, self.mx_specs)
-
+        print(x_q)
         # 2) weight 양자화
         w_q = quantize_mx_op(self.weight, self.mx_specs)
 
@@ -46,14 +47,14 @@ class MXConv2d(nn.Conv2d):
 def replace_convs_with_mx(module, mx_specs):
     for name, child in list(module.named_children()):
          # (1) 방문하는 모듈 정보 출력
-        print(f"Visiting {name}: {child.__class__.__name__}")
+      #  print(f"Visiting {name}: {child.__class__.__name__}")
         
         if isinstance(child, nn.Conv2d) and not isinstance(child, MXConv2d):
              # (2) 교체 전 Conv2d 정보 출력
-            print(f"  → Before replace ({name}) weight.shape={tuple(child.weight.shape)}")
-            print(f"    weight data:\n{child.weight.data}")
+       #     print(f"  → Before replace ({name}) weight.shape={tuple(child.weight.shape)}")
+        #    print(f"    weight data:\n{child.weight.data}")
             if child.bias is not None:
-                print(f"    bias data:\n{child.bias.data}")
+         #       print(f"    bias data:\n{child.bias.data}")
                 
             new_conv = MXConv2d(
                 child.in_channels, child.out_channels,
@@ -68,10 +69,10 @@ def replace_convs_with_mx(module, mx_specs):
                 new_conv.bias.data.copy_(child.bias.data)
           
             # 교체 후 파라미터
-            print(f"  → After replace ({name}) weight.shape={tuple(new_conv.weight.shape)}")
-            print(f"    weight data:\n{new_conv.weight.data}")
+         #   print(f"  → After replace ({name}) weight.shape={tuple(new_conv.weight.shape)}")
+         #   print(f"    weight data:\n{new_conv.weight.data}")
             if new_conv.bias is not None:
-                print(f"    bias data:\n{new_conv.bias.data}")
+         #       print(f"    bias data:\n{new_conv.bias.data}")
             # (3) 교체 후 MXConv2d 정보 출력
             
             setattr(module, name, new_conv)
