@@ -22,13 +22,25 @@ class MXConv2d(nn.Conv2d):
     def forward(self, x):
          # 1) 입력 activation 양자화
         print(x)
-        x_q = quantize_mx_op(x, self.mx_specs)
+        x_q = quantize_mx_op(
+            x,
+            self.mx_specs,
+            elem_format=self.mx_specs["a_elem_format"]
+        )
         print(x_q)
         # 2) weight 양자화
-        w_q = quantize_mx_op(self.weight, self.mx_specs)
+        w_q = quantize_mx_op(
+            self.weight,
+            self.mx_specs,
+            elem_format=self.mx_specs["w_elem_format"]
+        )
 
         # 3) bias 양자화 (bias가 있는 경우만)
-        b_q = quantize_mx_op(self.bias, self.mx_specs) if self.bias is not None else None
+        b_q =  quantize_mx_op(
+                self.bias,
+                self.mx_specs,
+                elem_format=self.mx_specs.get("b_elem_format")
+            ) if self.bias is not None else None
         
         out = F.conv2d(
             x_q,
