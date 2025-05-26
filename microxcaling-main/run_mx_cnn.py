@@ -26,7 +26,7 @@ class MXConv2d(nn.Conv2d):
             x,
             self.mx_specs,
             elem_format=self.mx_specs["a_elem_format"],
-            axes=[0]
+            axes=[1]
         )
       #  print(x_q)
         # 2) weight 양자화
@@ -38,7 +38,7 @@ class MXConv2d(nn.Conv2d):
             self.weight,
             self.mx_specs,
             elem_format=self.mx_specs["w_elem_format"],
-            axes=[1]
+            axes=[0]
         )
 
         print("  max |W-Wq| =", (self.weight - w_q).abs().max().item())
@@ -48,7 +48,7 @@ class MXConv2d(nn.Conv2d):
                 self.bias,
                 self.mx_specs,
                 elem_format=self.mx_specs["w_elem_format"],
-                axes=[1]
+                axes=[0]
             ) if self.bias is not None else None
         
         out = F.conv2d(
@@ -62,7 +62,12 @@ class MXConv2d(nn.Conv2d):
         )
       #  print(out)
       #  print("????")
-        return quantize_mx_op(out, self.mx_specs)
+        return quantize_mx_op(
+        out, self.mx_specs,
+        elem_format=self.mx_specs["a_elem_format"],
+        axes=[1],                     # 단일 축
+        block_size=self.mx_specs["block_size"]
+        ) 
 
 # 모델 내부 Conv2d→MXConv2d 교체 (modules.py로 전역 교체 시 생략 가능)
 def replace_convs_with_mx(module, mx_specs):
