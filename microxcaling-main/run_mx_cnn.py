@@ -26,12 +26,13 @@ class MXConv2d(nn.Conv2d):
 # 모델 내부 Conv2d→MXConv2d 교체 (modules.py로 전역 교체 시 생략 가능)
 def replace_convs_with_mx(module, mx_specs):
     for name, child in list(module.named_children()):
-        #name, child 확인
-        print(name)
-        print(child)
-        print("?????")
-        ##
+         # (1) 방문하는 모듈 정보 출력
+        print(f"Visiting {name}: {child.__class__.__name__}")
+        
         if isinstance(child, nn.Conv2d) and not isinstance(child, MXConv2d):
+             # (2) 교체 전 Conv2d 정보 출력
+            print(f"  → Replacing {name}: {child}")
+            
             new_conv = MXConv2d(
                 child.in_channels, child.out_channels,
                 mx_specs=mx_specs,
@@ -43,12 +44,12 @@ def replace_convs_with_mx(module, mx_specs):
             new_conv.weight.data.copy_(child.weight.data)
             if child.bias is not None:
                 new_conv.bias.data.copy_(child.bias.data)
+            # (3) 교체 후 MXConv2d 정보 출력
+            print(f"  → Replaced {name}: {new_conv}")
+            
             setattr(module, name, new_conv)
         else:
             replace_convs_with_mx(child, mx_specs)
-
-        print(new_conv)
-        print("!!!!!")
 
 def main():
     parser = argparse.ArgumentParser(description="MX-Quantized CNN Inference")
