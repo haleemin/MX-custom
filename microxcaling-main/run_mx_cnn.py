@@ -47,8 +47,7 @@ def replace_convs_with_mx(module, mx_specs):
         else:
             replace_convs_with_mx(child, mx_specs)
 
-        print(new_conv.name)
-        print(new_conv.child)
+        print(new_conv)
         print("!!!!!")
 
 def main():
