@@ -71,7 +71,7 @@ def replace_convs_with_mx(module, mx_specs):
             # 교체 후 파라미터
          #   print(f"  → After replace ({name}) weight.shape={tuple(new_conv.weight.shape)}")
          #   print(f"    weight data:\n{new_conv.weight.data}")
-            if new_conv.bias is not None:
+         #   if new_conv.bias is not None:
          #       print(f"    bias data:\n{new_conv.bias.data}")
             # (3) 교체 후 MXConv2d 정보 출력
             
