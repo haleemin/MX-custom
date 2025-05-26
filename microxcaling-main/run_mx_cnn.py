@@ -26,7 +26,7 @@ class MXConv2d(nn.Conv2d):
             x,
             self.mx_specs,
             elem_format=self.mx_specs["a_elem_format"],
-            axes=[1]
+            axes=[2,3]
         )
       #  print(x_q)
         # 2) weight 양자화
@@ -34,7 +34,7 @@ class MXConv2d(nn.Conv2d):
             self.weight,
             self.mx_specs,
             elem_format=self.mx_specs["w_elem_format"],
-            axes=[0]
+            axes=[2,3]
         )
 
         # 3) bias 양자화 (bias가 있는 경우만)
@@ -42,7 +42,7 @@ class MXConv2d(nn.Conv2d):
                 self.bias,
                 self.mx_specs,
                 elem_format=self.mx_specs["w_elem_format"],
-                axes=[0]
+                axes=[2,3]
             ) if self.bias is not None else None
         
         out = F.conv2d(
