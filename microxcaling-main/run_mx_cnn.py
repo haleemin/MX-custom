@@ -26,23 +26,29 @@ class MXConv2d(nn.Conv2d):
             x,
             self.mx_specs,
             elem_format=self.mx_specs["a_elem_format"],
-            axes=[2,3]
+            axes=[0]
         )
       #  print(x_q)
         # 2) weight 양자화
+        print("W fmt", self.mx_specs["w_elem_format"],
+        "axes", [0], "block_size", self.mx_specs["block_size"],
+        "scale_bits", self.mx_specs["scale_bits"])
+        
         w_q = quantize_mx_op(
             self.weight,
             self.mx_specs,
             elem_format=self.mx_specs["w_elem_format"],
-            axes=[2,3]
+            axes=[1]
         )
+
+        print("  max |W-Wq| =", (self.weight - w_q).abs().max().item())
 
         # 3) bias 양자화 (bias가 있는 경우만)
         b_q =  quantize_mx_op(
                 self.bias,
                 self.mx_specs,
                 elem_format=self.mx_specs["w_elem_format"],
-                axes=[2,3]
+                axes=[1]
             ) if self.bias is not None else None
         
         out = F.conv2d(
