@@ -19,14 +19,14 @@ class MXConv2d(nn.Conv2d):
         self.mx_specs = mx_specs
 
     def forward(self, x):
-        print(x)
-        print("----")
+      #  print(x)
+      #  print("----")
         x = quantize_mx_op(x, self.mx_specs)
-        print(x)
-        print("!!!!")
+      #  print(x)
+      #  print("!!!!")
         out = super().forward(x)
-        print(out)
-        print("????")
+      #  print(out)
+      #  print("????")
         return quantize_mx_op(out, self.mx_specs)
 
 # 모델 내부 Conv2d→MXConv2d 교체 (modules.py로 전역 교체 시 생략 가능)
@@ -90,6 +90,7 @@ def main():
 
     # MX 스펙 생성
     mx_specs = get_mx_specs(args)
+    print(mx_specs)
     device   = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # 모델 초기화
