@@ -28,9 +28,9 @@ def replace_convs_with_mx(module, mx_specs):
     for name, child in list(module.named_children()):
         #name, child 확인
         print(name)
-        print(?????)
+        print("?????")
         print(child)
-        print(!!!!!)
+        print("!!!!!")
         ##
         if isinstance(child, nn.Conv2d) and not isinstance(child, MXConv2d):
             new_conv = MXConv2d(
