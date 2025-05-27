@@ -14,7 +14,12 @@ from cnn_model import CNN
 # 양자화 호출 (modules.py가 torch.nn.Conv2d를 오버라이드하므로 직접 호출은 선택적)
 from mx.mx_ops import quantize_mx_op 
 # MXConv2d 래퍼 (modules.py를 사용한다면 이 부분은 생략 가능)
+
 class MXConv2d(nn.Conv2d):
+
+    _print_counter = 0
+    _max_prints    = 3
+    
     def __init__(self, *args, mx_specs=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.mx_specs = mx_specs
@@ -22,19 +27,29 @@ class MXConv2d(nn.Conv2d):
     def forward(self, x):
          # 1) 입력 activation 양자화
        # print(x)
+        if MXConv2d._print_counter < MXConv2d._max_prints:
+            print(f"[MXConv2d #{MXConv2d._print_counter+1}] {self}")
+            print(f"  입력 원본   shape={tuple(x.shape)}, min={x.min():.4f}, max={x.max():.4f}")
+
         x_q = quantize_mx_op(
             x,
             self.mx_specs,
             elem_format=self.mx_specs["a_elem_format"],
             axes=[1]
         )
+
+        if MXConv2d._print_counter < MXConv2d._max_prints:
+            print(f"  입력 양자화 shape={tuple(x_q.shape)}, min={x_q.min():.4f}, max={x_q.max():.4f}")
+
       #  print(x_q)
         # 2) weight 양자화
-        print("W fmt", self.mx_specs["w_elem_format"],
-        "axes", [0], "block_size", self.mx_specs["block_size"],
-        "scale_bits", self.mx_specs["scale_bits"])
+    #    print("W fmt", self.mx_specs["w_elem_format"],
+     #   "axes", [0], "block_size", self.mx_specs["block_size"],
+      #  "scale_bits", self.mx_specs["scale_bits"])
 
-        print(self.weight)
+     #   print(self.weight)
+        if MXConv2d._print_counter < MXConv2d._max_prints:
+            print(f"  가중치 원본 min={self.weight.min():.4f}, max={self.weight.max():.4f}")
         
         w_q = quantize_mx_op(
             self.weight,
@@ -43,8 +58,12 @@ class MXConv2d(nn.Conv2d):
             axes=[0]
         )
 
-        print(w_q)
-        print("  max |W-Wq| =", (self.weight - w_q).abs().max().item())
+        if MXConv2d._print_counter < MXConv2d._max_prints:
+            diff_w = (self.weight - w_q).abs().max().item()
+            print(f"  가중치 양자화 min={w_q.min():.4f}, max={w_q.max():.4f}, max|ΔW|={diff_w:.4f}")
+
+      #  print(w_q)
+       # print("  max |W-Wq| =", (self.weight - w_q).abs().max().item())
 
         # 3) bias 양자화 (bias가 있는 경우만)
         b_q =  quantize_mx_op(
@@ -53,7 +72,8 @@ class MXConv2d(nn.Conv2d):
                 elem_format=self.mx_specs["w_elem_format"],
                 axes=[0]
             ) if self.bias is not None else None
-        
+
+             
         out = F.conv2d(
             x_q,
             w_q,
@@ -65,6 +85,8 @@ class MXConv2d(nn.Conv2d):
         )
       #  print(out)
       #  print("????")
+
+        
         return quantize_mx_op(
         out, self.mx_specs,
         elem_format=self.mx_specs["a_elem_format"],
