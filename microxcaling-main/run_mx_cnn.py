@@ -33,6 +33,8 @@ class MXConv2d(nn.Conv2d):
         print("W fmt", self.mx_specs["w_elem_format"],
         "axes", [0], "block_size", self.mx_specs["block_size"],
         "scale_bits", self.mx_specs["scale_bits"])
+
+        print(self.weight)
         
         w_q = quantize_mx_op(
             self.weight,
@@ -41,6 +43,7 @@ class MXConv2d(nn.Conv2d):
             axes=[0]
         )
 
+        print(w_q)
         print("  max |W-Wq| =", (self.weight - w_q).abs().max().item())
 
         # 3) bias 양자화 (bias가 있는 경우만)
