@@ -30,6 +30,7 @@ class MXConv2d(nn.Conv2d):
         if MXConv2d._print_counter < MXConv2d._max_prints:
             print(f"[MXConv2d #{MXConv2d._print_counter+1}] {self}")
             print(f"  입력 원본   shape={tuple(x.shape)}, min={x.min():.4f}, max={x.max():.4f}")
+            print(x)
 
         x_q = quantize_mx_op(
             x,
@@ -40,6 +41,7 @@ class MXConv2d(nn.Conv2d):
 
         if MXConv2d._print_counter < MXConv2d._max_prints:
             print(f"  입력 양자화 shape={tuple(x_q.shape)}, min={x_q.min():.4f}, max={x_q.max():.4f}")
+            print(x_q)
 
       #  print(x_q)
         # 2) weight 양자화
@@ -50,6 +52,7 @@ class MXConv2d(nn.Conv2d):
      #   print(self.weight)
         if MXConv2d._print_counter < MXConv2d._max_prints:
             print(f"  가중치 원본 min={self.weight.min():.4f}, max={self.weight.max():.4f}")
+            print(self.weight)
         
         w_q = quantize_mx_op(
             self.weight,
@@ -61,6 +64,7 @@ class MXConv2d(nn.Conv2d):
         if MXConv2d._print_counter < MXConv2d._max_prints:
             diff_w = (self.weight - w_q).abs().max().item()
             print(f"  가중치 양자화 min={w_q.min():.4f}, max={w_q.max():.4f}, max|ΔW|={diff_w:.4f}")
+            print(w_q)
 
       #  print(w_q)
        # print("  max |W-Wq| =", (self.weight - w_q).abs().max().item())
