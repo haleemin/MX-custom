@@ -85,7 +85,9 @@ class MXConv2d(nn.Conv2d):
         )
       #  print(out)
       #  print("????")
-
+        if MXConv2d._print_counter < MXConv2d._max_prints:
+            print("──────────────────────────────────────────")
+            MXConv2d._print_counter +=
         
         return quantize_mx_op(
         out, self.mx_specs,
